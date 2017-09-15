@@ -1,12 +1,20 @@
+import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
 
 from forms import BookmarkForm
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+environment = os.getenv("FLASK_CONFIG")
 
 app = Flask(__name__)
 
 bookmarks = []
 app.config['SECRET_KEY'] = 'TC<\x02\xd8\x05\xfa7\xe47\xdf\xf7\xbe\x9c\xed\xebW\xd4\xff1*\x1b\xa87'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'thermos.db')
+
+db = SQLAlchemy(app)
 
 def store_bookmark(url):
     bookmarks.append(dict(
