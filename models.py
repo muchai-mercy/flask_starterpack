@@ -1,6 +1,9 @@
 from datetime import datetime
 
-from thermos.thermos import db
+try:
+  from thermos import db
+except ModuleNotFoundError:
+  from thermos.thermos import BookmarkForm
 
 class Bookmark(db.Model):
   __tablename__ = 'bookmark'

@@ -3,7 +3,11 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 
-from forms import BookmarkForm
+import models
+try:
+    from forms import BookmarkForm
+except ModuleNotFoundError:
+    from thermos.forms import BookmarkForm
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 environment = os.getenv("FLASK_CONFIG")
@@ -37,6 +41,9 @@ def add():
     if form.validate_on_submit():
         url = form.url.data
         description = form.description.data
+        bm = models.Bookmark(url=url, description=description)
+        db.session.add(bm)
+        db.session.commit()
         store_bookmark(description)
         flash("Stored '{}'".format(description))
         return redirect(url_for('index'))
