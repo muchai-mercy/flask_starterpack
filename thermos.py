@@ -1,10 +1,12 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 
+from app import app, db
 import models
 try:
+    from models import Bookmark, User
     from forms import BookmarkForm
 except ModuleNotFoundError:
     from thermos.forms import BookmarkForm
@@ -12,13 +14,9 @@ except ModuleNotFoundError:
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 environment = os.getenv("FLASK_CONFIG")
 
-app = Flask(__name__)
-
 bookmarks = []
 app.config['SECRET_KEY'] = 'TC<\x02\xd8\x05\xfa7\xe47\xdf\xf7\xbe\x9c\xed\xebW\xd4\xff1*\x1b\xa87'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'thermos.db')
-
-db = SQLAlchemy(app)
 
 def store_bookmark(url):
     bookmarks.append(dict(
@@ -27,13 +25,13 @@ def store_bookmark(url):
         date=datetime.utcnow()
     ))
 
-def new_bookmarks(num):
-    return sorted(bookmarks, key=lambda bm: bm['date'], reverse=True) [:num]
+# def new_bookmarks(num):
+#     return sorted(bookmarks, key=lambda bm: bm['date'], reverse=True) [:num]
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html', new_bookmarks=new_bookmarks(5))
+    return render_template('index.html', new_bookmarks=models.Bookmark.newest(5))
 
 @app.route('/add', methods=["GET", "POST"])
 def add():
@@ -41,6 +39,7 @@ def add():
     if form.validate_on_submit():
         url = form.url.data
         description = form.description.data
+        user_id = form.user_id.data
         bm = models.Bookmark(url=url, description=description)
         db.session.add(bm)
         db.session.commit()
